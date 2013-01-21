@@ -71,8 +71,8 @@
   (let [msg (log-map level namespace message throwable)
         loggers (config :slog :loggers)
         loggers (if (coll? loggers)
-                     loggers
-                     (vector loggers))]
+                  loggers
+                  (vector loggers))]
     (doseq [logger (set loggers)]
       (log logger msg))))
 
