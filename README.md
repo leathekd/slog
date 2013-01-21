@@ -19,6 +19,17 @@ stage.  More to come if it pans out.
 (slog/new-context)
 
 (slog/debug "something")
+;; This logs a map with the following keys to a file or into ES:
+;; :context
+;; :level
+;; :message
+;; :exception - this is a map created by clj-stacktrace
+;; :namespace
+;; :hostname
+;; :ip-address
+;; :thread-name
+;; :timestamp
+
 ```
 
 Look at resources/config.clj for the current config and use Carica to
