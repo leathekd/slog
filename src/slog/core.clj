@@ -2,19 +2,33 @@
   (:require [carica.core :refer [config]]
             [clj-stacktrace.core :as stacktrace]
             [slog.utils :as utils])
-  (:import (java.util Date UUID)))
+  (:import (java.util Date UUID)
+           (clojure.lang IDeref)))
 
-(def ^:dynamic ^:private *slog-id*
+;; stolen from
+;; https://github.com/flatland/useful/blob/develop/src/flatland/useful/utils.clj
+(defn thread-local* [init]
+  (let [generator (proxy [ThreadLocal] []
+                    (initialValue [] (init)))]
+    (reify IDeref
+      (deref [this]
+        (.get generator)))))
+
+(defmacro thread-local
+  [& body]
+  `(thread-local* (fn [] ~@body)))
+
+(def ^:private ^:dynamic *slog-id*
   "Placeholder var for the unique identifier."
-  (str (UUID/randomUUID)))
+  (thread-local (atom (str (UUID/randomUUID)))))
 
 ;; TODO: context-successful, context-failed, discard-context
 
 (defn get-context []
-  *slog-id*)
+  @@*slog-id*)
 
 (defn set-context [new-context]
-  (set! *slog-id* new-context))
+  (reset! @*slog-id* new-context))
 
 (defn new-context
   "Sets a thread local variable to a uniqe identifier for purposes of
@@ -32,7 +46,7 @@
 (defn log-map
   "Creates and populates the map that will be logged."
   [level namespace message & [throwable]]
-  {:context *slog-id*
+  {:context (get-context)
    :level level
    :message message
    :exception (when throwable
