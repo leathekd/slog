@@ -4,17 +4,23 @@
             [slog.utils :as utils])
   (:import (java.util Date UUID)))
 
-(def ^:dynamic *slog-id*
+(def ^:dynamic ^:private *slog-id*
   "Placeholder var for the unique identifier."
   (str (UUID/randomUUID)))
 
 ;; TODO: context-successful, context-failed, discard-context
 
+(defn get-context []
+  *slog-id*)
+
+(defn set-context [new-context]
+  (set! *slog-id* new-context))
+
 (defn new-context
   "Sets a thread local variable to a uniqe identifier for purposes of
   grouping related operations."
   []
-  (set! *slog-id* (str (UUID/randomUUID))))
+  (set-context (str (UUID/randomUUID))))
 
 (defn log-map
   "Creates and populates the map that will be logged."
