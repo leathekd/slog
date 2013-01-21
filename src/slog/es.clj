@@ -5,7 +5,7 @@
             [clojurewerkz.elastisch.rest.document :as esd]
             [clojurewerkz.elastisch.rest.response :as esrsp]
             [slog.core :refer [log]]
-            [sonian.carica :refer [config]]))
+            [carica.core :refer [config]]))
 
 (def mapping
   {:entry
