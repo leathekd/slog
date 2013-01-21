@@ -1,6 +1,6 @@
 (ns slog.core
   (:require [carica.core :refer [config]]
-            [clj-stacktrace.core :refer [parse-exception]]
+            [clj-stacktrace.core :as stacktrace]
             [slog.utils :as utils])
   (:import (java.util Date UUID)))
 
@@ -22,6 +22,13 @@
   []
   (set-context (str (UUID/randomUUID))))
 
+(defn parse-exception [throwable]
+  (let [parsed-ex (stacktrace/parse-exception throwable)
+        parsed-ex (if-let [data (ex-data throwable)]
+                    (assoc parsed-ex :data data)
+                    parsed-ex)]
+    (update-in parsed-ex [:class] #(.getName %))))
+
 (defn log-map
   "Creates and populates the map that will be logged."
   [level namespace message & [throwable]]
@@ -29,10 +36,7 @@
    :level level
    :message message
    :exception (when throwable
-                (let [parsed-ex (parse-exception throwable)]
-                  (if-let [data (ex-data throwable)]
-                    (assoc parsed-ex :data data)
-                    parsed-ex)))
+                (parse-exception throwable))
    :namespace (.getName namespace)
    :hostname (utils/hostname)
    :ip-address (utils/ip-address)
