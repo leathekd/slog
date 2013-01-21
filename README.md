@@ -32,7 +32,7 @@ stage.  More to come if it pans out.
 
 ```
 
-Look at resources/config.clj for the current config and use Carica to
+Look at resources/config.clj for the current config and use [Carica](https://github.com/sonian/carica) to
 set your own config for Slog.
 
 test/log4j.properties offers a test appender for the Slog output so
