@@ -36,7 +36,7 @@
           (log/error "An error occurred while creating the slog ES index."
                      "ES response:" resp))))))
 
-(defmethod log :es [log-map]
+(defmethod log :es [_ log-map]
   (esr/connect! (str (config :slog :es :connection-url)))
   (when-let [index (ensure-index)]
     (let [resp (esd/create index :entry log-map)]
