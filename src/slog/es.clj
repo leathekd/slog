@@ -8,7 +8,7 @@
             [carica.core :refer [config]]))
 
 (def mapping
-  {:entry
+  {"log-entry"
    {:properties {:context {:type "string"
                            :index "not_analyzed"}
                  :level {:type "string"}
@@ -39,7 +39,7 @@
 (defmethod log :es [_ log-map]
   (esr/connect! (str (config :slog :es :connection-url)))
   (when-let [index (ensure-index)]
-    (let [resp (esd/create index :entry log-map)]
+    (let [resp (esd/create index "log-entry" log-map)]
       (when-not (esrsp/ok? resp)
         ;; TODO what to do with log-map? attempt slog.log it?
         (log/error "An error occurred while indexing the slog entry."
