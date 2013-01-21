@@ -36,7 +36,10 @@ log.
 - Queuing up the log messages in memory and flushing them all when the
   current "context" is marked as done.  Perhaps making is such that
   successful completion won't Slog anything.
+
   [Related pragpub article.](http://pragprog.com/magazines/2011-12/justintime-logging)
+
+  This makes a lot more sense for ES than for file based logging.
 
 ## License
 

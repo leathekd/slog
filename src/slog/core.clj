@@ -8,8 +8,6 @@
   "Placeholder var for the unique identifier."
   (str (UUID/randomUUID)))
 
-;; TODO: get-context and set-context
-;; TODO: queuing and flushing logs on
 ;; TODO: context-successful, context-failed, discard-context
 
 (defn new-context
@@ -35,7 +33,10 @@
    :thread-name (.getName (Thread/currentThread))
    :timestamp (Date.)})
 
-;; TODO: protocol instead? I guess it would allow Java to play along...
+;; TODO: protocol instead? I guess it would allow Java to play
+;; along... Might make more sense if the interface increases (e.g.,
+;; queueing messages to log, doing specific actions upon success or
+;; failure of the context)
 (defmulti log
   "Hook point for logging messages to a specific backend"
   (fn [logger _] logger))
