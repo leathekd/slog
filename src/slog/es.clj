@@ -20,6 +20,11 @@
                                        :index "not_analyzed"}}}
                  ;; will dynamic take care of the rest?
                  :exception {:type "object"}
+                 :stacktrace {:type "multi_field"
+                              :fields {:stacktrace {:type "string"}
+                                       :stacktrace-verbatim
+                                       {:type "string"
+                                        :index "not_analyzed"}}}
                  :timestamp {:type "date"
                              :format "yyyy-MM-dd'T'HH:mm:ss'Z'"}
                  :hostname {:type "string"}
