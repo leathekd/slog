@@ -6,4 +6,5 @@
 ;; TODO
 
 (deftest t-contexts
+  ;; TODO test contexts, plus passing in a context
   )

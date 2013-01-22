@@ -2,39 +2,23 @@
   (:require [carica.core :refer [config]]
             [clj-stacktrace.core :as stacktrace]
             [slog.utils :as utils])
-  (:import (java.util Date UUID)
-           (clojure.lang IDeref)))
+  (:import (java.util Date UUID)))
 
-;; stolen from
-;; https://github.com/flatland/useful/blob/develop/src/flatland/useful/utils.clj
-(defn thread-local* [init]
-  (let [generator (proxy [ThreadLocal] []
-                    (initialValue [] (init)))]
-    (reify IDeref
-      (deref [this]
-        (.get generator)))))
-
-(defmacro thread-local
-  [& body]
-  `(thread-local* (fn [] ~@body)))
-
-(def ^:private ^:dynamic *slog-id*
+(def ^:dynamic *slog-id*
   "Placeholder var for the unique identifier."
-  (thread-local (atom (str (UUID/randomUUID)))))
+  (str (UUID/randomUUID)))
 
 ;; TODO: context-successful, context-failed, discard-context
 
 (defn get-context []
-  @@*slog-id*)
+  *slog-id*)
 
-(defn set-context [new-context]
-  (reset! @*slog-id* new-context))
-
-(defn new-context
-  "Sets a thread local variable to a uniqe identifier for purposes of
-  grouping related operations."
-  []
-  (set-context (str (UUID/randomUUID))))
+(defmacro with-slog-context [& body]
+  (let [[context body] (if (string? (first body))
+                         [(first body) (rest body)]
+                         [(str (UUID/randomUUID)) body])]
+    `(binding [*slog-id* context]
+       ~@body)))
 
 (defn parse-exception [throwable]
   (let [parsed-ex (stacktrace/parse-exception throwable)

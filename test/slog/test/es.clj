@@ -80,12 +80,13 @@
                        (map :_source hits))))))
 
 (deftest t-log-contexts
-  (let [first-context (get-context)]
-    (info (Exception. "ignorable test exception occurred")
-          "this" "should" "be" "one message")
-    (new-context)
-    (warn (Exception. "ignorable test exception occurred")
-          "this" "should" "be" "one message")
+  (let [first-context (with-slog-context
+                        (info (Exception. "ignorable test exception occurred")
+                              "this" "should" "be" "one message"))
+        second-context (with-slog-context
+                         (warn (Exception. "ignorable test exception occurred")
+                               "this" "should" "be" "one message")
+                         (get-context))]
     ;; make sure the index is ready to search
     (esi/refresh index)
     (let [res (esd/search index "log-entry" :query (q/match-all))
@@ -102,7 +103,7 @@
       (is (every? = (map #(dissoc % :timestamp :exception :level)
                          (map :_source hits)))))
     (let [res (esd/search index "log-entry" :query
-                          (q/term :context (get-context)))
+                          (q/term :context second-context))
           n (esrsp/total-hits res)
           hits (esrsp/hits-from res)]
       (is (= 1 n))
