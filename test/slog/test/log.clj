@@ -38,7 +38,7 @@
         (is (= "this should be one message" (:message p)))
         (is (= :trace (:level p))))
       (let [e (:exception (read-string (first exceptions)))]
-        (is (= "java.lang.Exception" (.getName (:class e))))
+        (is (= "java.lang.Exception" (:class e)))
         (is (= "ignorable test exception occurred" (:message e)))
         (is (seq (:trace-elems e))))
       (is (every? = (map #(dissoc (read-string %) :timestamp :exception)
