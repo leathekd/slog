@@ -1,11 +1,8 @@
 (ns slog.test.es
   (:require [carica.core :refer [config override-config]]
+            [cheshire.core :as cheshire]
             [clojure.test :refer :all]
-            [clojurewerkz.elastisch.query :as q]
-            [clojurewerkz.elastisch.rest :as esr]
-            [clojurewerkz.elastisch.rest.index :as esi]
-            [clojurewerkz.elastisch.rest.document :as esd]
-            [clojurewerkz.elastisch.rest.response :as esrsp]
+            [clj-http.client :as http]
             [slog.core :refer :all]
             [slog.es :refer :all]))
 
@@ -14,13 +11,24 @@
 (use-fixtures :each
   (fn [f]
     (with-redefs [config (override-config :slog :loggers :es)]
-      (f)))
-  (fn [f]
-    (esr/connect! (str (config :slog :es :connection-url)))
-    (when (esi/exists? index)
-      (esd/delete-by-query index "log-entry" "*:*")
-      (esi/delete index))
-    (f)))
+      (when (index-exists? index)
+        (http/delete (index-url index)
+                     (config :slog :es :request-options)))
+      (f))))
+
+(defn errors [index]
+  ;; make sure the index is ready to search
+  (refresh-index index)
+  (try
+    (let [resp
+          (cheshire/parse-string
+           (:body
+            (http/get (str (index-url index)
+                           "/log_entry/_search?sort=timestamp&q=*:*&size=50")
+                      (config :slog :es :request-options)))
+           true)]
+      (map :_source (get-in resp [:hits :hits])))
+    (catch Exception e)))
 
 (deftest t-log
   ;; These should all end up in ES
@@ -36,14 +44,10 @@
   (errorf "this %s be %s" "should" "one message")
   (fatal "this" "should" "be" "one message")
   (fatalf "this %s be %s" "should" "one message")
-  ;; make sure the index is ready to search
-  (esi/refresh index)
-  (let [res (esd/search index "log-entry" :query (q/match-all))
-        n (esrsp/total-hits res)
-        hits (esrsp/hits-from res)]
+  (let [hits (errors index)
+        n (count hits)]
     (is (= 12 n))
-    (is (every? = (map #(dissoc % :timestamp :exception :level)
-                       (map :_source hits))))))
+    (is (apply = (map #(dissoc % :timestamp :exception :level) hits)))))
 
 (deftest t-log-exceptions
   (trace (Exception. "ignorable test exception occurred")
@@ -70,42 +74,22 @@
          "this" "should" "be" "one message")
   (fatalf (Exception. "ignorable test exception occurred")
           "this %s be %s" "should" "one message")
-  ;; make sure the index is ready to search
-  (esi/refresh index)
-  (let [res (esd/search index "log-entry" :query (q/match-all))
-        n (esrsp/total-hits res)
-        hits (esrsp/hits-from res)]
+  (let [hits (errors index)
+        n (count hits)]
     (is (= 12 n))
-    (is (every? = (map #(dissoc % :timestamp :exception :level)
-                       (map :_source hits))))))
+    (is (apply = (map #(dissoc % :timestamp :exception :level) hits)))))
 
 (deftest t-log-contexts
   (let [first-context (with-slog-context
-                        (info (Exception. "ignorable test exception occurred")
-                              "this" "should" "be" "one message"))
+                        (warn "this" "should" "be" "one message")
+                        (get-context))
         second-context (with-slog-context
-                         (warn (Exception. "ignorable test exception occurred")
-                               "this" "should" "be" "one message")
+                         (warn "this" "should" "be" "one message")
                          (get-context))]
-    ;; make sure the index is ready to search
-    (esi/refresh index)
-    (let [res (esd/search index "log-entry" :query (q/match-all))
-          n (esrsp/total-hits res)
-          hits (esrsp/hits-from res)]
+    (let [hits (errors index)
+          n (count hits)
+          grouped (group-by :context hits)]
       (is (= 2 n))
-      (is (every? = (map #(dissoc % :timestamp :exception :level)
-                         (map :_source hits)))))
-    (let [res (esd/search index "log-entry" :query
-                          (q/term :context first-context))
-          n (esrsp/total-hits res)
-          hits (esrsp/hits-from res)]
-      (is (= 1 n))
-      (is (every? = (map #(dissoc % :timestamp :exception :level)
-                         (map :_source hits)))))
-    (let [res (esd/search index "log-entry" :query
-                          (q/term :context second-context))
-          n (esrsp/total-hits res)
-          hits (esrsp/hits-from res)]
-      (is (= 1 n))
-      (is (every? = (map #(dissoc % :timestamp :exception :level)
-                         (map :_source hits)))))))
+      (is (get grouped first-context))
+      (is (get grouped second-context))
+      (is (apply = (map #(dissoc % :timestamp :context) hits))))))

@@ -17,7 +17,7 @@
   (let [[context body] (if (string? (first body))
                          [(first body) (rest body)]
                          [(str (UUID/randomUUID)) body])]
-    `(binding [*slog-id* context]
+    `(binding [*slog-id* ~context]
        ~@body)))
 
 (defn parse-exception [throwable]
