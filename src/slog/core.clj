@@ -41,6 +41,12 @@
    :thread-name (.getName (Thread/currentThread))
    :timestamp (Date.)})
 
+;; TODO
+(defmacro environment
+  "Expands to code that generates a map of locals: names to values"
+  []
+  `(zipmap '~(keys &env) [~@(keys &env)]))
+
 ;; TODO: protocol instead? I guess it would allow Java to play
 ;; along... Might make more sense if the interface increases (e.g.,
 ;; queueing messages to log, doing specific actions upon success or
