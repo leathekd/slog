@@ -44,17 +44,15 @@
         (log/error e "There was a problem checking on the slog index")))))
 
 (defn ensure-index [index]
-  (let [index-url (index-url index)]
     (if (index-exists? index)
       index
       (try
-        (http/post index-url
+      (http/post (index-url index)
                    (merge {:body (cheshire/encode {:mappings mapping})}
                           (config :slog :es :request-options)))
         index
         (catch Exception e
-          (println e "Error creating the slog ES index.")
-          (log/error e "Error creating the slog ES index."))))))
+        (log/error e "Error creating the slog ES index.")))))
 
 (defn refresh-index [index]
   (http/post (str (index-url index) "/_refresh")
@@ -70,5 +68,4 @@
                           (config :slog :es :request-options)))
         (catch Exception e
           ;; TODO what to do with log-map? attempt slog.log it?
-          (println e "An error occurred while indexing the slog entry.")
           (log/error e "An error occurred while indexing the slog entry."))))))
