@@ -1,8 +1,9 @@
 {:slog
- {:loggers [] #_"can be one of :es, :log, or a seq of both"
+ {:loggers [:es :log] #_"can be one of :es, :log, or a seq of both"
   :es {:connection-url "http://localhost:9200"
        :index "slog"
        :request-options
        #_"options to be merged into the clj-http request options for
           every request"
-       {:debug false}}}}
+       {:debug false
+        :basic-auth ["user" "Passw0rd"]}}}}
