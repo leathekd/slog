@@ -8,6 +8,16 @@
 
 (def index (config :slog :es :index))
 
+
+(use-fixtures :once
+  (fn [f]
+    (try
+      (http/get (str (config :slog :es :connection-url) "/_status")
+                (config :slog :es :request-options))
+      (f)
+      (catch Exception e
+        (println "ES doesn't appear to be running, skipping tests.")))))
+
 (use-fixtures :each
   (fn [f]
     (with-redefs [config (override-config :slog :loggers :es)]
