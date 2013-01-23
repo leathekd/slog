@@ -44,14 +44,14 @@
         (log/error e "There was a problem checking on the slog index")))))
 
 (defn ensure-index [index]
-    (if (index-exists? index)
-      index
-      (try
+  (if (index-exists? index)
+    index
+    (try
       (http/post (index-url index)
-                   (merge {:body (cheshire/encode {:mappings mapping})}
-                          (config :slog :es :request-options)))
-        index
-        (catch Exception e
+                 (merge {:body (cheshire/encode {:mappings mapping})}
+                        (config :slog :es :request-options)))
+      index
+      (catch Exception e
         (log/error e "Error creating the slog ES index.")))))
 
 (defn refresh-index [index]
@@ -65,7 +65,7 @@
     (let [resp
           (cheshire/parse-string
            (:body
-            (http/get (str (index-url index)
+            (http/get (str (index-url (ensure-index index))
                            "/log_entry/_search?sort=timestamp&q=*:*&size="
                            (or size 50))
                       (config :slog :es :request-options)))
