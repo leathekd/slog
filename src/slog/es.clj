@@ -58,6 +58,22 @@
   (http/post (str (index-url index) "/_refresh")
              (config :slog :es :request-options)))
 
+(defn entries [index & [size]]
+  ;; make sure the index is ready to search
+  (refresh-index index)
+  (try
+    (let [resp
+          (cheshire/parse-string
+           (:body
+            (http/get (str (index-url index)
+                           "/log_entry/_search?sort=timestamp&q=*:*&size="
+                           (or size 50))
+                      (config :slog :es :request-options)))
+           true)]
+      (map :_source (get-in resp [:hits :hits])))
+    (catch Exception e
+      (log/error e "An error occurred why searching for slog entries."))))
+
 (defmethod log :es [_ log-map]
   (let [index (config :slog :es :index)
         index-url (index-url index)]

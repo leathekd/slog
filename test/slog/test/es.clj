@@ -16,20 +16,6 @@
                      (config :slog :es :request-options)))
       (f))))
 
-(defn errors [index]
-  ;; make sure the index is ready to search
-  (refresh-index index)
-  (try
-    (let [resp
-          (cheshire/parse-string
-           (:body
-            (http/get (str (index-url index)
-                           "/log_entry/_search?sort=timestamp&q=*:*&size=50")
-                      (config :slog :es :request-options)))
-           true)]
-      (map :_source (get-in resp [:hits :hits])))
-    (catch Exception e)))
-
 (deftest t-log
   ;; These should all end up in ES
   (trace "this" "should" "be" "one message")
@@ -44,7 +30,7 @@
   (errorf "this %s be %s" "should" "one message")
   (fatal "this" "should" "be" "one message")
   (fatalf "this %s be %s" "should" "one message")
-  (let [hits (errors index)
+  (let [hits (entries index)
         n (count hits)]
     (is (= 12 n))
     (is (apply = (map #(dissoc % :timestamp :exception :level) hits)))))
@@ -74,7 +60,7 @@
          "this" "should" "be" "one message")
   (fatalf (Exception. "ignorable test exception occurred")
           "this %s be %s" "should" "one message")
-  (let [hits (errors index)
+  (let [hits (entries index)
         n (count hits)]
     (is (= 12 n))
     (is (apply = (map #(dissoc % :timestamp :exception :level) hits)))))
@@ -86,7 +72,7 @@
         second-context (with-slog-context
                          (warn "this" "should" "be" "one message")
                          (get-context))]
-    (let [hits (errors index)
+    (let [hits (entries index)
           n (count hits)
           grouped (group-by :context hits)]
       (is (= 2 n))
