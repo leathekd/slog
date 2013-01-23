@@ -29,9 +29,10 @@
 
 (defn log-map
   "Creates and populates the map that will be logged."
-  [level namespace message & [throwable]]
+  [level namespace env message & [throwable]]
   {:context (get-context)
    :level level
+   :env env
    :message message
    :exception (when throwable
                 (parse-exception throwable))
@@ -57,8 +58,8 @@
 
 (defn log*
   "Logs the message to all configured loggers"
-  [level namespace throwable message]
-  (let [msg (log-map level namespace message throwable)
+  [level namespace env throwable message]
+  (let [msg (log-map level namespace env message throwable)
         loggers (config :slog :loggers)
         loggers (if (coll? loggers)
                   loggers
@@ -69,20 +70,22 @@
 (defn logp
   "Logs a message using print style args. Can optionally take a throwable as its
   second arg. See level-specific macros, e.g., debug."
-  {:arglists '([level ns message & more] [level ns throwable message & more])}
-  [level ns x & more]
+  {:arglists '([level ns env message & more]
+                 [level ns env hrowable message & more])}
+  [level ns env x & more]
   (if (instance? Throwable x)
-    (log* level ns x (apply print-str more))
-    (log* level ns nil (apply print-str x more))))
+    (log* level ns env x (apply print-str more))
+    (log* level ns env nil (apply print-str x more))))
 
 (defn logf
   "Logs a message using a format string and args. Can optionally take a
   throwable as its second arg. See level-specific macros, e.g., debugf."
-  {:arglists '([level ns fmt & fmt-args] [level ns throwable fmt & fmt-args])}
-  [level ns x & more]
+  {:arglists '([level ns env fmt & fmt-args]
+                 [level ns env throwable fmt & fmt-args])}
+  [level ns env x & more]
   (if (instance? Throwable x)
-    (log* level ns x (apply format more))
-    (log* level ns nil (apply format x more))))
+    (log* level ns env x (apply format more))
+    (log* level ns env nil (apply format x more))))
 
 ;; level-specific macros
 
@@ -90,70 +93,70 @@
   "Trace level logging using print-style args."
   {:arglists '([message & more] [throwable message & more])}
   [& args]
-  `(logp :trace ~*ns* ~@args))
+  `(logp :trace ~*ns* (environment) ~@args))
 
 (defmacro debug
   "Debug level logging using print-style args."
   {:arglists '([message & more] [throwable message & more])}
   [& args]
-  `(logp :debug ~*ns* ~@args))
+  `(logp :debug ~*ns* (environment) ~@args))
 
 (defmacro info
   "Info level logging using print-style args."
   {:arglists '([message & more] [throwable message & more])}
   [& args]
-  `(logp :info ~*ns* ~@args))
+  `(logp :info ~*ns* (environment) ~@args))
 
 (defmacro warn
   "Warn level logging using print-style args."
   {:arglists '([message & more] [throwable message & more])}
   [& args]
-  `(logp :warn ~*ns* ~@args))
+  `(logp :warn ~*ns* (environment) ~@args))
 
 (defmacro error
   "Error level logging using print-style args."
   {:arglists '([message & more] [throwable message & more])}
   [& args]
-  `(logp :error ~*ns* ~@args))
+  `(logp :error ~*ns* (environment) ~@args))
 
 (defmacro fatal
   "Fatal level logging using print-style args."
   {:arglists '([message & more] [throwable message & more])}
   [& args]
-  `(logp :fatal ~*ns* ~@args))
+  `(logp :fatal ~*ns* (environment) ~@args))
 
 (defmacro tracef
   "Trace level logging using format."
   {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
   [& args]
-  `(logf :trace ~*ns* ~@args))
+  `(logf :trace ~*ns* (environment) ~@args))
 
 (defmacro debugf
   "Debug level logging using format."
   {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
   [& args]
-  `(logf :debug ~*ns* ~@args))
+  `(logf :debug ~*ns* (environment) ~@args))
 
 (defmacro infof
   "Info level logging using format."
   {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
   [& args]
-  `(logf :info ~*ns* ~@args))
+  `(logf :info ~*ns* (environment) ~@args))
 
 (defmacro warnf
   "Warn level logging using format."
   {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
   [& args]
-  `(logf :warn ~*ns* ~@args))
+  `(logf :warn ~*ns* (environment) ~@args))
 
 (defmacro errorf
   "Error level logging using format."
   {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
   [& args]
-  `(logf :error ~*ns* ~@args))
+  `(logf :error ~*ns* (environment) ~@args))
 
 (defmacro fatalf
   "Fatal level logging using format."
   {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
   [& args]
-  `(logf :fatal ~*ns* ~@args))
+  `(logf :fatal ~*ns* (environment) ~@args))

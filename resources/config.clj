@@ -5,4 +5,5 @@
        :request-options
        #_"options to be merged into the clj-http request options for
           every request"
+       :basic-auth ["user" "Passw0rd"]
        {:debug false}}}}
