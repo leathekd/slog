@@ -77,14 +77,14 @@
 (defrecord Logger []
   Sloggable
   (log [_ log-map]
-  (let [index (config :slog :es :index)
-        index-url (index-url index)]
-    (when-let [index (ensure-index index)]
-      (try
-        (http/post (str index-url "/log_entry")
-                   (merge {:body (cheshire/encode log-map)}
-                          (config :slog :es :request-options)))
-        (catch Exception e
-          ;; TODO what to do with log-map? attempt slog.log it?
+    (let [index (config :slog :es :index)
+          index-url (index-url index)]
+      (when-let [index (ensure-index index)]
+        (try
+          (http/post (str index-url "/log_entry")
+                     (merge {:body (cheshire/encode log-map)}
+                            (config :slog :es :request-options)))
+          (catch Exception e
+            ;; TODO what to do with log-map? attempt slog.log it?
             (log/error e
                        "An error occurred while indexing the slog entry.")))))))
