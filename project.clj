@@ -7,6 +7,6 @@
                  [cheshire "5.0.1"]
                  [clj-http "0.6.3"]
                  [clj-stacktrace "0.2.5"]
-                 [org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.logging "0.2.3"]]
-  :profiles {:dev {:dependencies [[log4j "1.2.17"]]}})
+  :profiles {:dev {:dependencies [[log4j "1.2.17"]
+                                  [org.clojure/clojure "1.4.0"]]}})
