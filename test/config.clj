@@ -1,5 +1,5 @@
 {:slog
- {:loggers [:es :log] #_"can be one of :es, :log, or a seq of both"
+ {:loggers [] #_"can be one of :es, :log, or a seq of both"
   :es {:connection-url "http://localhost:9200"
        :index "slog"
        :request-options
