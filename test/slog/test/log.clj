@@ -2,12 +2,14 @@
   (:require [carica.core :refer [config override-config]]
             [clojure.test :refer :all]
             [slog.core :refer :all]
-            [slog.log :refer :all])
-  (:import (org.apache.log4j Logger)))
+            [slog.log :refer :all]
+            [clojure.pprint])
+  (:import (java.util UUID)
+           (org.apache.log4j Logger)))
 
 (use-fixtures :once
   (fn [f]
-    (with-redefs [config (override-config :slog :loggers :log)]
+    (with-redefs [config (override-config :slog :loggers 'slog.log)]
       (f))))
 
 (defmacro with-log-output [& body]
@@ -67,13 +69,13 @@
                        (debugf (Exception. "ignorable test exception occurred")
                                "this %s be %s" "should" "one message")
                        (info (Exception. "ignorable test exception occurred")
-                              "this" "should" "be" "one message")
+                             "this" "should" "be" "one message")
                        (infof (Exception. "ignorable test exception occurred")
-                               "this %s be %s" "should" "one message")
+                              "this %s be %s" "should" "one message")
                        (warn (Exception. "ignorable test exception occurred")
-                              "this" "should" "be" "one message")
+                             "this" "should" "be" "one message")
                        (warnf (Exception. "ignorable test exception occurred")
-                               "this %s be %s" "should" "one message")
+                              "this %s be %s" "should" "one message")
                        (error (Exception. "ignorable test exception occurred")
                               "this" "should" "be" "one message")
                        (errorf (Exception. "ignorable test exception occurred")

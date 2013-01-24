@@ -2,7 +2,7 @@
   (:require [cheshire.core :as cheshire]
             [clojure.tools.logging :as log]
             [clj-http.client :as http]
-            [slog.core :refer [log]]
+            [slog.core :refer [log Sloggable]]
             [carica.core :refer [config]]))
 
 (def mapping
@@ -74,7 +74,9 @@
     (catch Exception e
       (log/error e "An error occurred why searching for slog entries."))))
 
-(defmethod log :es [_ log-map]
+(defrecord Logger []
+  Sloggable
+  (log [_ log-map]
   (let [index (config :slog :es :index)
         index-url (index-url index)]
     (when-let [index (ensure-index index)]
@@ -84,4 +86,5 @@
                           (config :slog :es :request-options)))
         (catch Exception e
           ;; TODO what to do with log-map? attempt slog.log it?
-          (log/error e "An error occurred while indexing the slog entry."))))))
+            (log/error e
+                       "An error occurred while indexing the slog entry.")))))))

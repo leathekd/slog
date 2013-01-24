@@ -41,13 +41,10 @@
    :thread-name (.getName (Thread/currentThread))
    :timestamp (Date.)})
 
-;; TODO: protocol instead? I guess it would allow Java to play
-;; along... Might make more sense if the interface increases (e.g.,
-;; queueing messages to log, doing specific actions upon success or
-;; failure of the context)
-(defmulti log
-  "Hook point for logging messages to a specific backend"
-  (fn [logger _] logger))
+(defprotocol Sloggable
+  (log [context log-map])
+  (success [context])
+  (failure [context]))
 
 (defn log*
   "Logs the message to all configured loggers"
@@ -58,7 +55,8 @@
                   loggers
                   (vector loggers))]
     (doseq [logger (set loggers)]
-      (log logger msg))))
+      (log (.newInstance (ns-resolve (symbol (name logger)) 'Logger))
+           msg))))
 
 (defn logp
   "Logs a message using print style args. Can optionally take a throwable as its

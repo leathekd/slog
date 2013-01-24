@@ -1,6 +1,8 @@
 (ns slog.log
   (:require [clojure.tools.logging :as log]
-            [slog.core :refer [log log-map]]))
+            [slog.core :refer [log log-map Sloggable]]))
 
-(defmethod log :log [_ log-map]
-  (log/log (:level log-map) (pr-str log-map)))
+(defrecord Logger []
+  Sloggable
+  (log [context log-map]
+    (log/log (:level log-map) (pr-str log-map))))

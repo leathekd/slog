@@ -8,23 +8,22 @@
 
 (def index (config :slog :es :index))
 
-
 (use-fixtures :once
   (fn [f]
-    (try
-      (http/get (str (config :slog :es :connection-url) "/_status")
-                (config :slog :es :request-options))
-      (f)
-      (catch Exception e
-        (println "ES doesn't appear to be running, skipping tests.")))))
+    (with-redefs [config (override-config :slog :loggers 'slog.es)]
+      (try
+        (http/get (str (config :slog :es :connection-url) "/_status")
+                  (config :slog :es :request-options))
+        (f)
+        (catch Exception e
+          (println "ES doesn't appear to be running, skipping tests."))))))
 
 (use-fixtures :each
   (fn [f]
-    (with-redefs [config (override-config :slog :loggers :es)]
-      (when (index-exists? index)
-        (http/delete (index-url index)
-                     (config :slog :es :request-options)))
-      (f))))
+    (when (index-exists? index)
+      (http/delete (index-url index)
+                   (config :slog :es :request-options)))
+    (f)))
 
 (deftest t-log
   ;; These should all end up in ES
