@@ -76,76 +76,21 @@
     (log* level ns x (apply format more))
     (log* level ns nil (apply format x more))))
 
+(defmacro make-logger [name]
+  `(do
+     (defmacro ~(symbol name)
+       ~(str name " level logging using print-style args.")
+       {:arglists '([message & more] [throwable message & more])}
+       [~'& args#]
+       `(logp :trace ~*ns* ~@args#))
+     (defmacro ~(symbol (str name "f"))
+       ~(str name " level logging using format.")
+       {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
+       [~'& args#]
+       `(logf :trace ~*ns* ~@args#))))
+
+(defmacro make-loggers [& loggers]
+  `(do ~(map (fn [l] `(make-logger ~l)) loggers)))
+
 ;; level-specific macros
-
-(defmacro trace
-  "Trace level logging using print-style args."
-  {:arglists '([message & more] [throwable message & more])}
-  [& args]
-  `(logp :trace ~*ns* ~@args))
-
-(defmacro debug
-  "Debug level logging using print-style args."
-  {:arglists '([message & more] [throwable message & more])}
-  [& args]
-  `(logp :debug ~*ns* ~@args))
-
-(defmacro info
-  "Info level logging using print-style args."
-  {:arglists '([message & more] [throwable message & more])}
-  [& args]
-  `(logp :info ~*ns* ~@args))
-
-(defmacro warn
-  "Warn level logging using print-style args."
-  {:arglists '([message & more] [throwable message & more])}
-  [& args]
-  `(logp :warn ~*ns* ~@args))
-
-(defmacro error
-  "Error level logging using print-style args."
-  {:arglists '([message & more] [throwable message & more])}
-  [& args]
-  `(logp :error ~*ns* ~@args))
-
-(defmacro fatal
-  "Fatal level logging using print-style args."
-  {:arglists '([message & more] [throwable message & more])}
-  [& args]
-  `(logp :fatal ~*ns* ~@args))
-
-(defmacro tracef
-  "Trace level logging using format."
-  {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
-  [& args]
-  `(logf :trace ~*ns* ~@args))
-
-(defmacro debugf
-  "Debug level logging using format."
-  {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
-  [& args]
-  `(logf :debug ~*ns* ~@args))
-
-(defmacro infof
-  "Info level logging using format."
-  {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
-  [& args]
-  `(logf :info ~*ns* ~@args))
-
-(defmacro warnf
-  "Warn level logging using format."
-  {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
-  [& args]
-  `(logf :warn ~*ns* ~@args))
-
-(defmacro errorf
-  "Error level logging using format."
-  {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
-  [& args]
-  `(logf :error ~*ns* ~@args))
-
-(defmacro fatalf
-  "Fatal level logging using format."
-  {:arglists '([fmt & fmt-args] [throwable fmt & fmt-args])}
-  [& args]
-  `(logf :fatal ~*ns* ~@args))
+(make-loggers trace debug info warn error fatal)
