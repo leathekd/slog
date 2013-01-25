@@ -28,6 +28,12 @@
     (update-in parsed-ex [:class] #(.getName %))))
 
 ;; I stole this from fipp and modified to suit my needs
+;; The idea is that since I can't handle and fix issues when the
+;; reader fails to read a form, I should try to better handle as I'm
+;; dumping out.
+;; this work here is probably a bit overkill as the reader can handle
+;; many of these w/o this munging
+
 (defmulti pretty class)
 
 (defmethod pretty :default [x]
