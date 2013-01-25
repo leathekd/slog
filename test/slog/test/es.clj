@@ -42,7 +42,8 @@
   (let [hits (entries index)
         n (count hits)]
     (is (= 12 n))
-    (is (apply = (map #(dissoc % :timestamp :exception :level) hits)))))
+    (is (apply = (map #(dissoc % :stacktrace :timestamp :exception :level)
+                      hits)))))
 
 (deftest t-log-exceptions
   (trace (Exception. "ignorable test exception occurred")

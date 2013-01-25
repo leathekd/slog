@@ -24,6 +24,17 @@
        (finally
          (.removeAppender (Logger/getRootLogger) appender#)))))
 
+(defn inspect-env
+  "This just for dev testing"
+  []
+  (let [local1 1
+        local2 (atom [1 2 3 4])
+        local3 {:a 1 :b 3 :c 5}]
+    (println :environment (environment))
+    (println
+     (with-log-output
+       (trace "hello world")))))
+
 (deftest t-log
   (testing "one level in some depth"
     (let [plain (with-log-output
@@ -43,7 +54,8 @@
         (is (= "java.lang.Exception" (:class e)))
         (is (= "ignorable test exception occurred" (:message e)))
         (is (seq (:trace-elems e))))
-      (is (every? = (map #(dissoc (read-string %) :timestamp :exception)
+      (is (every? = (map #(dissoc (read-string %)
+                                  :timestamp :stacktrace :exception)
                          (concat plain exceptions))))))
   (testing "all levels, superficially"
     (let [plain (with-log-output
@@ -86,5 +98,7 @@
                                "this %s be %s" "should" "one message"))]
       (is (seq plain))
       (is (seq exceptions))
-      (is (every? = (map #(dissoc (read-string %) :timestamp :exception)
+      #_
+      (is (every? = (map #(dissoc (read-string %)
+                                  :stacktrace :timestamp :exception)
                          (concat plain exceptions)))))))
