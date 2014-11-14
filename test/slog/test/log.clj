@@ -1,6 +1,6 @@
-(ns slog.test.core
+(ns slog.test.log
   (:require [clojure.test :refer :all]
-            [slog.core :refer :all])
+            [slog.log :refer :all])
   (:import (java.util UUID)
            (org.apache.log4j Logger)))
 

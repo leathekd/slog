@@ -1,4 +1,4 @@
-(ns slog.core
+(ns slog.log
   (:require [clojure.stacktrace :refer [print-cause-trace]]
             [clojure.tools.logging :as log]
             [slog.utils :as utils]))
